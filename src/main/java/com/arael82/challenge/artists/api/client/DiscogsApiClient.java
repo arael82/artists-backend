@@ -19,6 +19,7 @@ import java.io.IOException;
 public class DiscogsApiClient {
 
     public static final String AUTHORIZATION_HEADER = "Authorization";
+
     private final String baseUrl;
 
     private final String apiToken;
@@ -31,11 +32,12 @@ public class DiscogsApiClient {
     public DiscogsApiClient(
             @Value("${discogs.api.base-url}") String baseUrl,
             @Value("${discogs.api.token}") String apiToken,
+            OkHttpClient httpClient,
             ObjectMapper objectMapper
     ) {
-        this.httpClient = new OkHttpClient();
         this.baseUrl = baseUrl;
         this.apiToken = apiToken;
+        this.httpClient = httpClient;
         this.objectMapper = objectMapper;
     }
 
