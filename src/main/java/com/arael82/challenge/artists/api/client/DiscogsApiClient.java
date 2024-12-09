@@ -10,6 +10,7 @@ import okhttp3.Response;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -56,12 +57,8 @@ public class DiscogsApiClient {
         log.info("Requesting artist with ID: {} on Discogs API.", artistId);
 
         try (Response response = httpClient.newCall(buildRequest(url)).execute()) {
-            if (!response.isSuccessful()) {
-                throw new DiscogsApiClientException("Unexpected code: " + response);
-            }
-            String responseBody = response.body().string();
-
-            return objectMapper.readValue(responseBody, ArtistResponseDto.class);
+            validateResponse(response);
+            return objectMapper.readValue(response.body().string(), ArtistResponseDto.class);
         }
     }
 
@@ -80,12 +77,8 @@ public class DiscogsApiClient {
         log.info("Requesting releases for artist with ID: {} on Discogs API.", artistId);
 
         try (Response response = httpClient.newCall(buildRequest(url)).execute()) {
-            if (!response.isSuccessful()) {
-                throw new DiscogsApiClientException("Unexpected code: " + response);
-            }
-            String responseBody = response.body().string();
-
-            return objectMapper.readValue(responseBody, ApiResponseDto.class);
+            validateResponse(response);
+            return objectMapper.readValue(response.body().string(), ApiResponseDto.class);
         }
     }
 
@@ -100,6 +93,21 @@ public class DiscogsApiClient {
                 .url(url)
                 .addHeader(AUTHORIZATION_HEADER, "Discogs token=" + apiToken)
                 .build();
+    }
+
+    /**
+     * Validate the response. If the response is not successful, throw an exception.
+     * @param response the response to validate.
+     * @throws DiscogsApiClientException if the response is not successful.
+     */
+    private static void validateResponse(Response response) throws DiscogsApiClientException {
+        if (!response.isSuccessful()) {
+
+            String message = response.code() == HttpStatus.NOT_FOUND.value() ?
+                    "Resource not found" : "Unexpected code: " + response;
+
+            throw new DiscogsApiClientException(message, response.code());
+        }
     }
 
 }

@@ -16,18 +16,18 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
 
+import static com.arael82.challenge.artists.TestConstants.TEST_ARTIST_ID;
+import static com.arael82.challenge.artists.TestConstants.TEST_ARTIST_NAME;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @SuppressWarnings("resource")
 @ExtendWith(MockitoExtension.class)
 class DiscogsApiClientTest {
-
-    public static final int TEST_ARTIST_ID = 1;
-    public static final String TEST_ARTIST_NAME = "testName";
 
     @Mock
     private OkHttpClient httpClientMock;
@@ -66,6 +66,7 @@ class DiscogsApiClientTest {
         assertEquals(new ArtistResponseDto(TEST_ARTIST_ID, TEST_ARTIST_NAME), result);
         verify(responseMock).isSuccessful();
         verify(callMock).execute();
+        verifyNoMoreInteractions(callMock);
     }
 
     @Test
@@ -81,6 +82,7 @@ class DiscogsApiClientTest {
         // Assert and Verify
         verify(responseMock).isSuccessful();
         verify(callMock).execute();
+        verifyNoMoreInteractions(callMock);
     }
 
     @Test
@@ -147,6 +149,7 @@ class DiscogsApiClientTest {
         assertEquals(apiResponseDto, result);
         verify(responseMock).isSuccessful();
         verify(callMock).execute();
+        verifyNoMoreInteractions(callMock);
     }
 
     @Test
@@ -162,5 +165,6 @@ class DiscogsApiClientTest {
         // Assert and Verify
         verify(responseMock).isSuccessful();
         verify(callMock).execute();
+        verifyNoMoreInteractions(callMock);
     }
 }
