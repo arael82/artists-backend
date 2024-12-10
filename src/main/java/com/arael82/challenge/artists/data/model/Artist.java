@@ -9,6 +9,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.ArrayList;
@@ -17,7 +18,12 @@ import java.util.List;
 @Entity(name = "artists")
 @Getter
 @Setter
+@NoArgsConstructor
 public class Artist extends AbstractEntity {
+
+    public Artist(String name) {
+        this.name = name;
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

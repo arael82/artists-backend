@@ -1,6 +1,8 @@
 package com.arael82.challenge.artists.api.client.domain;
 
 public record ArtistResponseDto(
-        Integer id,
+        Long id,
         String name
-) {}
+) {
+    
+}

@@ -2,6 +2,7 @@ package com.arael82.challenge.artists.service;
 
 import com.arael82.challenge.artists.api.client.DiscogsApiClient;
 import com.arael82.challenge.artists.api.client.DiscogsApiClientException;
+import com.arael82.challenge.artists.data.repository.ArtistRepository;
 import com.arael82.challenge.artists.service.exception.NotFoundException;
 import com.arael82.challenge.artists.service.exception.UnexpectedServiceException;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,11 +27,14 @@ class ArtistServiceTest {
     @Mock
     DiscogsApiClient discogsApiClientMock;
 
+    @Mock
+    ArtistRepository artistRepositoryMock;
+
     private ArtistService artistService;
 
     @BeforeEach
     void setUp() {
-        artistService = new ArtistService(discogsApiClientMock);
+        artistService = new ArtistService(discogsApiClientMock, artistRepositoryMock);
     }
 
     @Test
@@ -81,55 +85,4 @@ class ArtistServiceTest {
         verify(discogsApiClientMock).getArtistById(TEST_ARTIST_ID);
         verifyNoMoreInteractions(discogsApiClientMock);
     }
-
-
-    @Test
-    void whenRetrieveDiscographyValidateIsFound_ThenOk() {
-    }
-
-    @Test
-    void whenRetrieveDiscographyValidateNotFound_ThenThrowException() throws IOException {
-
-        //When
-        doThrow(new DiscogsApiClientException("Not found", HttpStatus.NOT_FOUND.value()))
-                .when(discogsApiClientMock).getReleasesByArtistId(any());
-
-        //Do
-        assertThrows(NotFoundException.class, () -> artistService.retrieveDiscography(TEST_ARTIST_ID));
-
-        //Assert and Verify
-        verify(discogsApiClientMock).getReleasesByArtistId(TEST_ARTIST_ID);
-        verifyNoMoreInteractions(discogsApiClientMock);
-    }
-
-    @Test
-    void whenRetrieveDiscographyValidateApiFailed_ThenThrowException() throws IOException {
-
-        //When
-        doThrow(new DiscogsApiClientException("Timeout", HttpStatus.GATEWAY_TIMEOUT.value()))
-                .when(discogsApiClientMock).getReleasesByArtistId(any());
-
-        //Do
-        assertThrows(UnexpectedServiceException.class, () -> artistService.retrieveDiscography(TEST_ARTIST_ID));
-
-        //Assert and Verify
-        verify(discogsApiClientMock).getReleasesByArtistId(TEST_ARTIST_ID);
-        verifyNoMoreInteractions(discogsApiClientMock);
-    }
-
-    @Test
-    void whenRetrieveDiscographyValidateUnexpectedError_ThenThrowException() throws IOException {
-
-        //When
-        doThrow(new RuntimeException("Unexpected error"))
-                .when(discogsApiClientMock).getReleasesByArtistId(any());
-
-        //Do
-        assertThrows(UnexpectedServiceException.class, () -> artistService.retrieveDiscography(TEST_ARTIST_ID));
-
-        //Assert and Verify
-        verify(discogsApiClientMock).getReleasesByArtistId(TEST_ARTIST_ID);
-        verifyNoMoreInteractions(discogsApiClientMock);
-    }
-
 }

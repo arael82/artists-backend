@@ -1,7 +1,7 @@
 package com.arael82.challenge.artists.api.client.domain;
 
 public record ReleaseResponseDto(
-        Integer id,
+        Long id,
         String status,
         String type,
         String format,

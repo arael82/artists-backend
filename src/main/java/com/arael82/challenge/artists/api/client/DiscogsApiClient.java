@@ -50,7 +50,7 @@ public class DiscogsApiClient {
      * @throws IOException if the request fails.
      */
     @SuppressWarnings("DataFlowIssue")
-    public ArtistResponseDto getArtistById(Integer artistId) throws IOException {
+    public ArtistResponseDto getArtistById(Long artistId) throws IOException {
 
         String url = String.format("%s/artists/%d", baseUrl, artistId);
 
@@ -70,7 +70,7 @@ public class DiscogsApiClient {
      * @throws IOException if the request fails.
      */
     @SuppressWarnings("DataFlowIssue")
-    public ApiResponseDto getReleasesByArtistId(Integer artistId) throws IOException {
+    public ApiResponseDto getReleasesByArtistId(Long artistId) throws IOException {
 
         String url = String.format("%s/artists/%d/releases", baseUrl, artistId);
 
