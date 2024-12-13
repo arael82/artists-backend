@@ -21,13 +21,17 @@ import java.util.List;
 @NoArgsConstructor
 public class Artist extends AbstractEntity {
 
-    public Artist(String name) {
+    public Artist(Long apiId, String name) {
+        this.apiId = apiId;
         this.name = name;
     }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "api_id", nullable = false, unique = true)
+    private Long apiId;
 
     @Column(nullable = false, unique = true)
     private String name;

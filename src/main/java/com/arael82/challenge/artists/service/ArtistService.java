@@ -92,11 +92,11 @@ public class ArtistService {
     private Artist getArtistFromDb(ArtistResponseDto source) {
         try {
 
-            Optional<Artist> existingArtist = artistRepository.findById(source.id());
+            Optional<Artist> existingArtist = artistRepository.findByApiId(source.id());
 
             if(existingArtist.isEmpty()){
                 log.info("Artist not found, creating new Artist entity ({}: {})", source.id(), source.name());
-                return new Artist(source.name());
+                return new Artist(source.id(), source.name());
             }
 
             log.info("Artist found, returning existing existingArtist ({}: {})", source.id(), source.name());
