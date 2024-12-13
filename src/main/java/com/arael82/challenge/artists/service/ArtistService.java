@@ -110,40 +110,36 @@ public class ArtistService {
     }
 
     private void updateAlbumsList(Artist artist, ApiResponseDto discography) {
-        try {
-
-            if (discography == null) {
-                log.debug("Soft-deleting any discography for artist ({}: {})", artist.getId(), artist.getName());
-                artist.getAlbums().forEach(album -> album.setActive(false));
-                return;
-            }
-
-            log.debug("Processing discography for artist ({}: {})", artist.getId(), artist.getName());
-
-            Map<Long, ReleaseResponseDto> entriesFromApi = discography.releases().stream()
-                    .collect(Collectors.toMap(ReleaseResponseDto::id, Function.identity()));
-
-            Map<Long, Album> savedEntries = artist.getAlbums().stream()
-                    .collect(Collectors.toMap(Album::getApiId, Function.identity()));
-
-            for(Album album : artist.getAlbums()) {
-
-                log.info("Refreshing Album based on API response ({}: {})", album.getApiId(), album.getTitle());
-                album.setActive(entriesFromApi.containsKey(album.getApiId()));
-                album.setTitle(entriesFromApi.get(album.getApiId()).title());
-                album.setGenre(entriesFromApi.get(album.getApiId()).role());
-                album.setYear(entriesFromApi.get(album.getApiId()).year());
-
-            }
-
-            artist.getAlbums().addAll(
-                    entriesFromApi.entrySet().stream()
-                            .filter(entry -> savedEntries.get(entry.getKey()) == null)
-                            .map(entry -> new Album(artist, entry.getKey(), entry.getValue().title(), entry.getValue().role(), entry.getValue().year()))
-                            .toList());
-        } catch (Exception ex) {
-            throw new UnexpectedServiceException(ex);
+        if (discography == null) {
+            log.debug("Soft-deleting any discography for artist ({}: {})", artist.getId(), artist.getName());
+            artist.getAlbums().forEach(album -> album.setActive(false));
+            return;
         }
+
+        log.debug("Processing discography for artist ({}: {})", artist.getId(), artist.getName());
+
+        Map<Long, ReleaseResponseDto> entriesFromApi = discography.releases().stream()
+                .collect(Collectors.toMap(ReleaseResponseDto::id, Function.identity()));
+
+        Map<Long, Album> savedEntries = artist.getAlbums().stream()
+                .collect(Collectors.toMap(Album::getApiId, Function.identity()));
+
+        for(Album album : artist.getAlbums()) {
+
+            log.info("Refreshing Album based on API response ({}: {})", album.getApiId(), album.getTitle());
+            album.setActive(entriesFromApi.containsKey(album.getApiId()));
+            album.setTitle(entriesFromApi.get(album.getApiId()).title());
+            album.setGenre(entriesFromApi.get(album.getApiId()).role());
+            album.setYear(entriesFromApi.get(album.getApiId()).year());
+
+        }
+
+        artist.getAlbums().addAll(
+                entriesFromApi.entrySet().stream()
+                        .filter(entry -> savedEntries.get(entry.getKey()) == null)
+                        .map(entry -> new Album(artist, entry.getKey(), entry.getValue().title(), entry.getValue().role(), entry.getValue().year()))
+                        .toList());
+
     }
 
 }
