@@ -2,8 +2,8 @@ package com.arael82.challenge.artists.service;
 
 import com.arael82.challenge.artists.api.client.DiscogsApiClient;
 import com.arael82.challenge.artists.api.client.DiscogsApiClientException;
-import com.arael82.challenge.artists.api.client.domain.ApiResponseDto;
-import com.arael82.challenge.artists.api.client.domain.ArtistResponseDto;
+import com.arael82.challenge.artists.api.client.domain.DiscogsApiResponseDto;
+import com.arael82.challenge.artists.api.client.domain.DiscogsApiArtistResponseDto;
 import com.arael82.challenge.artists.data.model.Album;
 import com.arael82.challenge.artists.data.model.Artist;
 import com.arael82.challenge.artists.data.repository.ArtistRepository;
@@ -58,10 +58,10 @@ class ArtistServiceTest {
     @Test
     void whenRetrieveArtistValidateDiscographyIsFound_ThenOk() throws IOException {
         //Given
-        ArtistResponseDto artistResponseDto = new ArtistResponseDto(TEST_ARTIST_ID, TEST_ARTIST_NAME);
+        DiscogsApiArtistResponseDto discogsApiArtistResponseDto = new DiscogsApiArtistResponseDto(TEST_ARTIST_ID, TEST_ARTIST_NAME);
 
         //When
-        doReturn(artistResponseDto)
+        doReturn(discogsApiArtistResponseDto)
                 .when(discogsApiClientMock).getArtistById(any());
 
         Artist artistEntity = new Artist(TEST_ARTIST_ID, TEST_ARTIST_NAME);
@@ -117,7 +117,7 @@ class ArtistServiceTest {
                 "  ]\n" +
                 "}\n";
 
-        ApiResponseDto discographyApiResponse = objectMapper.readValue(releaseResponseJson, ApiResponseDto.class);
+        DiscogsApiResponseDto discographyApiResponse = objectMapper.readValue(releaseResponseJson, DiscogsApiResponseDto.class);
         doReturn(discographyApiResponse)
                 .when(discogsApiClientMock).getReleasesByArtistId(TEST_ARTIST_ID);
 
@@ -153,10 +153,10 @@ class ArtistServiceTest {
     @Test
     void whenRetrieveArtistValidateDiscographyNotFound_ThenOk() throws IOException {
         //Given
-        ArtistResponseDto artistResponseDto = new ArtistResponseDto(TEST_ARTIST_ID, TEST_ARTIST_NAME);
+        DiscogsApiArtistResponseDto discogsApiArtistResponseDto = new DiscogsApiArtistResponseDto(TEST_ARTIST_ID, TEST_ARTIST_NAME);
 
         //When
-        doReturn(artistResponseDto)
+        doReturn(discogsApiArtistResponseDto)
                 .when(discogsApiClientMock).getArtistById(any());
         doReturn(Optional.empty())
                 .when(artistRepositoryMock).findByApiId(any());
@@ -188,10 +188,10 @@ class ArtistServiceTest {
     @Test
     void whenRetrieveArtistDiscographyReturns504NotFound_ThenThrowException() throws IOException {
         //Given
-        ArtistResponseDto artistResponseDto = new ArtistResponseDto(TEST_ARTIST_ID, TEST_ARTIST_NAME);
+        DiscogsApiArtistResponseDto discogsApiArtistResponseDto = new DiscogsApiArtistResponseDto(TEST_ARTIST_ID, TEST_ARTIST_NAME);
 
         //When
-        doReturn(artistResponseDto)
+        doReturn(discogsApiArtistResponseDto)
                 .when(discogsApiClientMock).getArtistById(any());
         doReturn(Optional.empty())
                 .when(artistRepositoryMock).findByApiId(any());
@@ -215,10 +215,10 @@ class ArtistServiceTest {
     @Test
     void whenRetrieveArtistDiscographyValidateNPE_ThenThrowException() throws IOException {
         //Given
-        ArtistResponseDto artistResponseDto = new ArtistResponseDto(TEST_ARTIST_ID, TEST_ARTIST_NAME);
+        DiscogsApiArtistResponseDto discogsApiArtistResponseDto = new DiscogsApiArtistResponseDto(TEST_ARTIST_ID, TEST_ARTIST_NAME);
 
         //When
-        doReturn(artistResponseDto)
+        doReturn(discogsApiArtistResponseDto)
                 .when(discogsApiClientMock).getArtistById(any());
         doReturn(Optional.empty())
                 .when(artistRepositoryMock).findByApiId(any());
@@ -242,10 +242,10 @@ class ArtistServiceTest {
     @Test
     void whenRetrieveArtistValidateOtherError_ThenThrowException() throws IOException {
         //Given
-        ArtistResponseDto artistResponseDto = new ArtistResponseDto(TEST_ARTIST_ID, TEST_ARTIST_NAME);
+        DiscogsApiArtistResponseDto discogsApiArtistResponseDto = new DiscogsApiArtistResponseDto(TEST_ARTIST_ID, TEST_ARTIST_NAME);
 
         //When
-        doReturn(artistResponseDto)
+        doReturn(discogsApiArtistResponseDto)
                 .when(discogsApiClientMock).getArtistById(any());
         doThrow(new RuntimeException("DB error"))
                 .when(artistRepositoryMock).findByApiId(any());

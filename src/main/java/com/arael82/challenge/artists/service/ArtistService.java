@@ -2,9 +2,9 @@ package com.arael82.challenge.artists.service;
 
 import com.arael82.challenge.artists.api.client.DiscogsApiClient;
 import com.arael82.challenge.artists.api.client.DiscogsApiClientException;
-import com.arael82.challenge.artists.api.client.domain.ApiResponseDto;
-import com.arael82.challenge.artists.api.client.domain.ArtistResponseDto;
-import com.arael82.challenge.artists.api.client.domain.ReleaseResponseDto;
+import com.arael82.challenge.artists.api.client.domain.DiscogsApiResponseDto;
+import com.arael82.challenge.artists.api.client.domain.DiscogsApiArtistResponseDto;
+import com.arael82.challenge.artists.api.client.domain.DiscogsApiReleaseResponseDto;
 import com.arael82.challenge.artists.data.model.Album;
 import com.arael82.challenge.artists.data.model.Artist;
 import com.arael82.challenge.artists.data.repository.ArtistRepository;
@@ -66,7 +66,7 @@ public class ArtistService {
      * @param artistId Artist ID.
      * @return The discography information, if there is any.
      */
-    private ApiResponseDto retrieveDiscography(Long artistId) {
+    private DiscogsApiResponseDto retrieveDiscography(Long artistId) {
         try {
             log.debug("Retrieving discography from API for artist ({})", artistId);
             return discogsApiClient.getReleasesByArtistId(artistId);
@@ -89,7 +89,7 @@ public class ArtistService {
      * @param source Artist information retrieved from Discogs API.
      * @return The artist information persisted in the database.
      */
-    private Artist getArtistFromDb(ArtistResponseDto source) {
+    private Artist getArtistFromDb(DiscogsApiArtistResponseDto source) {
         try {
 
             Optional<Artist> existingArtist = artistRepository.findByApiId(source.id());
@@ -109,7 +109,7 @@ public class ArtistService {
         }
     }
 
-    private void updateAlbumsList(Artist artist, ApiResponseDto discography) {
+    private void updateAlbumsList(Artist artist, DiscogsApiResponseDto discography) {
         if (discography == null) {
             log.debug("Soft-deleting any discography for artist ({}: {})", artist.getId(), artist.getName());
             artist.getAlbums().forEach(album -> album.setActive(false));
@@ -118,8 +118,8 @@ public class ArtistService {
 
         log.debug("Processing discography for artist ({}: {})", artist.getId(), artist.getName());
 
-        Map<Long, ReleaseResponseDto> entriesFromApi = discography.releases().stream()
-                .collect(Collectors.toMap(ReleaseResponseDto::id, Function.identity()));
+        Map<Long, DiscogsApiReleaseResponseDto> entriesFromApi = discography.releases().stream()
+                .collect(Collectors.toMap(DiscogsApiReleaseResponseDto::id, Function.identity()));
 
         Map<Long, Album> savedEntries = artist.getAlbums().stream()
                 .collect(Collectors.toMap(Album::getApiId, Function.identity()));

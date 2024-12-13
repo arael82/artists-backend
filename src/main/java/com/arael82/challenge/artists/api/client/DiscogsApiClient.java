@@ -1,7 +1,7 @@
 package com.arael82.challenge.artists.api.client;
 
-import com.arael82.challenge.artists.api.client.domain.ApiResponseDto;
-import com.arael82.challenge.artists.api.client.domain.ArtistResponseDto;
+import com.arael82.challenge.artists.api.client.domain.DiscogsApiResponseDto;
+import com.arael82.challenge.artists.api.client.domain.DiscogsApiArtistResponseDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.log4j.Log4j2;
 import okhttp3.OkHttpClient;
@@ -50,7 +50,7 @@ public class DiscogsApiClient {
      * @throws IOException if the request fails.
      */
     @SuppressWarnings("DataFlowIssue")
-    public ArtistResponseDto getArtistById(Long artistId) throws IOException {
+    public DiscogsApiArtistResponseDto getArtistById(Long artistId) throws IOException {
 
         String url = String.format("%s/artists/%d", baseUrl, artistId);
 
@@ -58,7 +58,7 @@ public class DiscogsApiClient {
 
         try (Response response = httpClient.newCall(buildRequest(url)).execute()) {
             validateResponse(response);
-            return objectMapper.readValue(response.body().string(), ArtistResponseDto.class);
+            return objectMapper.readValue(response.body().string(), DiscogsApiArtistResponseDto.class);
         }
     }
 
@@ -70,7 +70,7 @@ public class DiscogsApiClient {
      * @throws IOException if the request fails.
      */
     @SuppressWarnings("DataFlowIssue")
-    public ApiResponseDto getReleasesByArtistId(Long artistId) throws IOException {
+    public DiscogsApiResponseDto getReleasesByArtistId(Long artistId) throws IOException {
 
         String url = String.format("%s/artists/%d/releases", baseUrl, artistId);
 
@@ -78,7 +78,7 @@ public class DiscogsApiClient {
 
         try (Response response = httpClient.newCall(buildRequest(url)).execute()) {
             validateResponse(response);
-            return objectMapper.readValue(response.body().string(), ApiResponseDto.class);
+            return objectMapper.readValue(response.body().string(), DiscogsApiResponseDto.class);
         }
     }
 

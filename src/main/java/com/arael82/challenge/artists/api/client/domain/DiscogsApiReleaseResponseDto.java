@@ -1,6 +1,6 @@
 package com.arael82.challenge.artists.api.client.domain;
 
-public record ReleaseResponseDto(
+public record DiscogsApiReleaseResponseDto(
         Long id,
         String status,
         String type,

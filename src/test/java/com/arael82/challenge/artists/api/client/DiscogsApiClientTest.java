@@ -1,7 +1,7 @@
 package com.arael82.challenge.artists.api.client;
 
-import com.arael82.challenge.artists.api.client.domain.ApiResponseDto;
-import com.arael82.challenge.artists.api.client.domain.ArtistResponseDto;
+import com.arael82.challenge.artists.api.client.domain.DiscogsApiResponseDto;
+import com.arael82.challenge.artists.api.client.domain.DiscogsApiArtistResponseDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.Call;
 import okhttp3.MediaType;
@@ -63,7 +63,7 @@ class DiscogsApiClientTest {
         var result = discogsApiClient.getArtistById(TEST_ARTIST_ID);
 
         // Assert and Verify
-        assertEquals(new ArtistResponseDto(TEST_ARTIST_ID, TEST_ARTIST_NAME), result);
+        assertEquals(new DiscogsApiArtistResponseDto(TEST_ARTIST_ID, TEST_ARTIST_NAME), result);
         verify(responseMock).isSuccessful();
         verify(callMock).execute();
         verifyNoMoreInteractions(callMock);
@@ -145,8 +145,8 @@ class DiscogsApiClientTest {
         var result = discogsApiClient.getReleasesByArtistId(TEST_ARTIST_ID);
 
         // Assert and Verify
-        ApiResponseDto apiResponseDto = objectMapper.readValue(releaseResponseJson, ApiResponseDto.class);
-        assertEquals(apiResponseDto, result);
+        DiscogsApiResponseDto discogsApiResponseDto = objectMapper.readValue(releaseResponseJson, DiscogsApiResponseDto.class);
+        assertEquals(discogsApiResponseDto, result);
         verify(responseMock).isSuccessful();
         verify(callMock).execute();
         verifyNoMoreInteractions(callMock);
