@@ -2,17 +2,25 @@ package com.arael82.challenge.artists.service;
 
 import com.arael82.challenge.artists.api.client.DiscogsApiClient;
 import com.arael82.challenge.artists.api.client.DiscogsApiClientException;
-import com.arael82.challenge.artists.api.client.domain.DiscogsApiResponseDto;
 import com.arael82.challenge.artists.api.client.domain.DiscogsApiArtistResponseDto;
 import com.arael82.challenge.artists.api.client.domain.DiscogsApiReleaseResponseDto;
+import com.arael82.challenge.artists.api.client.domain.DiscogsApiResponseDto;
 import com.arael82.challenge.artists.data.model.Album;
 import com.arael82.challenge.artists.data.model.Artist;
+import com.arael82.challenge.artists.data.repository.AlbumRepository;
 import com.arael82.challenge.artists.data.repository.ArtistRepository;
+import com.arael82.challenge.artists.data.specification.AlbumSpecifications;
 import com.arael82.challenge.artists.service.exception.NotFoundException;
 import com.arael82.challenge.artists.service.exception.UnexpectedServiceException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -29,6 +37,8 @@ public class ArtistService {
     private final DiscogsApiClient discogsApiClient;
 
     private final ArtistRepository artistRepository;
+
+    private final AlbumRepository albumRepository;
 
     /**
      * Retrieve artist from Discogs API.
@@ -139,6 +149,56 @@ public class ArtistService {
                         .filter(entry -> savedEntries.get(entry.getKey()) == null)
                         .map(entry -> new Album(artist, entry.getKey(), entry.getValue().title(), entry.getValue().role(), entry.getValue().year()))
                         .toList());
+
+    }
+
+    /**
+     * Search for albums by artist, with optional filters.
+     * @param artistApiId Artist ID.
+     * @param genre Genre filter.
+     * @param title Title filter.
+     * @param year Year filter.
+     * @param page Page number.
+     * @param size Page size.
+     * @return A page of albums that match the search criteria.
+     */
+    public Page<Album> searchAlbums(
+            long artistApiId,
+            String genre,
+            String title,
+            Integer year,
+            int page,
+            int size) {
+
+        log.debug("Preparing album search for artist ({}) with filters: genre={}, title={}, year={}",
+                artistApiId, genre, title, year);
+
+        Specification<Album> spec = Specification
+                .where(AlbumSpecifications.hasArtistApiId(artistApiId))
+                .and(AlbumSpecifications.isActive(true));
+
+        if (StringUtils.isNotBlank(genre)) {
+            spec = spec.and(AlbumSpecifications.hasGenre(genre));
+        }
+
+        if (StringUtils.isNotBlank(title)) {
+            spec = spec.and(AlbumSpecifications.titleContains(title));
+        }
+
+        if (year != null) {
+            spec = spec.and(AlbumSpecifications.hasYear(year));
+        }
+
+        Pageable pageable = PageRequest.of(
+                page - 1,
+                size,
+                Sort.by(Sort.Order.asc("year"), Sort.Order.asc("title"))
+        );
+
+        log.info("Searching albums for artist ({}) with filters: genre={}, title={}, year={}",
+                artistApiId, genre, title, year);
+
+        return albumRepository.findAll(spec, pageable);
 
     }
 

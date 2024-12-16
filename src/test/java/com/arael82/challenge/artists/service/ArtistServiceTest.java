@@ -2,10 +2,11 @@ package com.arael82.challenge.artists.service;
 
 import com.arael82.challenge.artists.api.client.DiscogsApiClient;
 import com.arael82.challenge.artists.api.client.DiscogsApiClientException;
-import com.arael82.challenge.artists.api.client.domain.DiscogsApiResponseDto;
 import com.arael82.challenge.artists.api.client.domain.DiscogsApiArtistResponseDto;
+import com.arael82.challenge.artists.api.client.domain.DiscogsApiResponseDto;
 import com.arael82.challenge.artists.data.model.Album;
 import com.arael82.challenge.artists.data.model.Artist;
+import com.arael82.challenge.artists.data.repository.AlbumRepository;
 import com.arael82.challenge.artists.data.repository.ArtistRepository;
 import com.arael82.challenge.artists.service.exception.NotFoundException;
 import com.arael82.challenge.artists.service.exception.UnexpectedServiceException;
@@ -17,9 +18,16 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import static com.arael82.challenge.artists.TestConstants.TEST_ARTIST_ID;
@@ -38,10 +46,13 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 class ArtistServiceTest {
 
     @Mock
-    DiscogsApiClient discogsApiClientMock;
+    private DiscogsApiClient discogsApiClientMock;
 
     @Mock
-    ArtistRepository artistRepositoryMock;
+    private ArtistRepository artistRepositoryMock;
+
+    @Mock
+    private AlbumRepository albumRepositoryMock;
 
     private ArtistService artistService;
 
@@ -50,9 +61,15 @@ class ArtistServiceTest {
     @Captor
     private ArgumentCaptor<Artist> artistArgCaptor;
 
+    @Captor
+    private ArgumentCaptor<Pageable> pageableArgCaptor;
+
+    @Captor
+    private ArgumentCaptor<Specification<Album>> albumSpecificationsCaptor;
+
     @BeforeEach
     void setUp() {
-        artistService = new ArtistService(discogsApiClientMock, artistRepositoryMock);
+        artistService = new ArtistService(discogsApiClientMock, artistRepositoryMock, albumRepositoryMock);
     }
 
     @Test
@@ -302,5 +319,65 @@ class ArtistServiceTest {
         //Assert and Verify
         verify(discogsApiClientMock).getArtistById(TEST_ARTIST_ID);
         verifyNoMoreInteractions(discogsApiClientMock);
+    }
+
+    @SuppressWarnings({"unchecked", "unused"})
+    @Test
+    void whenSearchAlbumsAllParamsThenValidateNotNull_ThenOk() {
+        //Given
+        int testPage = 1;
+        int testPageSize = 20;
+
+        Artist artist = new Artist(TEST_ARTIST_ID, TEST_ARTIST_NAME);
+        artist.getAlbums().addAll(Arrays.asList(
+                new Album(artist, 101L, "Thriller", "Main", 1982),
+                new Album(artist, 102L, "Shape of You", "Main", 2017),
+                new Album(artist, 103L, "New Horizons", "Contributor", 2024)));
+        Pageable pageable = PageRequest.of(testPage, testPageSize);
+        List<Album> albumList = artist.getAlbums();
+
+        Page<Album> albumPage = new PageImpl<>(albumList, pageable, albumList.size());
+
+        doReturn(albumPage).when(albumRepositoryMock).findAll(any(Specification.class), any(Pageable.class));
+
+        //Do
+        Page<Album> albums = artistService.searchAlbums(
+                TEST_ARTIST_ID, "Album", "Thriller", 2024, testPage, testPageSize);
+
+        //Assert and Verify
+        verify(albumRepositoryMock).findAll(albumSpecificationsCaptor.capture(),
+                pageableArgCaptor.capture());
+        assertEquals(0, pageableArgCaptor.getValue().getPageNumber());
+        verifyNoMoreInteractions(artistRepositoryMock, albumRepositoryMock);
+    }
+
+    @SuppressWarnings({"unchecked", "unused"})
+    @Test
+    void whenSearchAlbumsNoOptionalParamsThenValidateNotNull_ThenOk() {
+        //Given
+        int testPage = 1;
+        int testPageSize = 20;
+
+        Artist artist = new Artist(TEST_ARTIST_ID, TEST_ARTIST_NAME);
+        artist.getAlbums().addAll(Arrays.asList(
+                new Album(artist, 101L, "Thriller", "Main", 1982),
+                new Album(artist, 102L, "Shape of You", "Main", 2017),
+                new Album(artist, 103L, "New Horizons", "Contributor", 2024)));
+        Pageable pageable = PageRequest.of(testPage, testPageSize);
+        List<Album> albumList = artist.getAlbums();
+
+        Page<Album> albumPage = new PageImpl<>(albumList, pageable, albumList.size());
+
+        doReturn(albumPage).when(albumRepositoryMock).findAll(any(Specification.class), any(Pageable.class));
+
+        //Do
+        Page<Album> albums = artistService.searchAlbums(
+                TEST_ARTIST_ID, null, null, null, testPage, testPageSize);
+
+        //Assert and Verify
+        verify(albumRepositoryMock).findAll(albumSpecificationsCaptor.capture(),
+                pageableArgCaptor.capture());
+        assertEquals(0, pageableArgCaptor.getValue().getPageNumber());
+        verifyNoMoreInteractions(artistRepositoryMock, albumRepositoryMock);
     }
 }
