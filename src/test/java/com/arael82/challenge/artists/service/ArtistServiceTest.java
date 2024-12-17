@@ -29,12 +29,14 @@ import org.springframework.http.HttpStatus;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 import static com.arael82.challenge.artists.TestConstants.TEST_ARTIST_ID;
 import static com.arael82.challenge.artists.TestConstants.TEST_ARTIST_NAME;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -76,10 +78,9 @@ class ArtistServiceTest {
 
     @Test
     void whenRetrieveArtistValidateDiscographyIsFound_ThenOk() throws IOException {
-        //Given
+
         DiscogsApiArtistResponseDto discogsApiArtistResponseDto = new DiscogsApiArtistResponseDto(TEST_ARTIST_ID, TEST_ARTIST_NAME);
 
-        //When
         doReturn(discogsApiArtistResponseDto)
                 .when(discogsApiClientMock).getArtistById(any());
 
@@ -147,10 +148,9 @@ class ArtistServiceTest {
 
         doReturn(artistEntity, updatedArtist)
                 .when(artistRepositoryMock).save(any());
-        //Do
+
         ArtistResponseDto retrievedArtist = artistService.retrieveArtist(TEST_ARTIST_ID);
 
-        //Assert and Verify
         assertEquals(TEST_ARTIST_ID, retrievedArtist.getApiId());
         assertEquals(TEST_ARTIST_NAME, retrievedArtist.getName());
         verify(discogsApiClientMock).getArtistById(TEST_ARTIST_ID);
@@ -171,10 +171,9 @@ class ArtistServiceTest {
 
     @Test
     void whenRetrieveArtistValidateDiscographyNotFound_ThenOk() throws IOException {
-        //Given
+
         DiscogsApiArtistResponseDto discogsApiArtistResponseDto = new DiscogsApiArtistResponseDto(TEST_ARTIST_ID, TEST_ARTIST_NAME);
 
-        //When
         doReturn(discogsApiArtistResponseDto)
                 .when(discogsApiClientMock).getArtistById(any());
         doReturn(Optional.empty())
@@ -189,10 +188,8 @@ class ArtistServiceTest {
         doThrow(new DiscogsApiClientException("Not found", HttpStatus.NOT_FOUND.value()))
                 .when(discogsApiClientMock).getReleasesByArtistId(any());
 
-        //Do
         ArtistResponseDto retrievedArtist = artistService.retrieveArtist(TEST_ARTIST_ID);
 
-        //Assert and Verify
         assertEquals(TEST_ARTIST_ID, retrievedArtist.getApiId());
         assertEquals(TEST_ARTIST_NAME, retrievedArtist.getName());
         verify(discogsApiClientMock).getArtistById(TEST_ARTIST_ID);
@@ -206,10 +203,9 @@ class ArtistServiceTest {
 
     @Test
     void whenRetrieveArtistDiscographyReturns504NotFound_ThenThrowException() throws IOException {
-        //Given
+
         DiscogsApiArtistResponseDto discogsApiArtistResponseDto = new DiscogsApiArtistResponseDto(TEST_ARTIST_ID, TEST_ARTIST_NAME);
 
-        //When
         doReturn(discogsApiArtistResponseDto)
                 .when(discogsApiClientMock).getArtistById(any());
         doReturn(Optional.empty())
@@ -221,10 +217,8 @@ class ArtistServiceTest {
          doThrow(new DiscogsApiClientException("Timeout", HttpStatus.GATEWAY_TIMEOUT.value()))
                 .when(discogsApiClientMock).getReleasesByArtistId(any());
 
-        //Do
         assertThrows(UnexpectedServiceException.class, () -> artistService.retrieveArtist(TEST_ARTIST_ID));
 
-        //Assert and Verify
         verify(discogsApiClientMock).getArtistById(TEST_ARTIST_ID);
         verify(artistRepositoryMock).findByApiId(TEST_ARTIST_ID);
         verify(discogsApiClientMock).getReleasesByArtistId(TEST_ARTIST_ID);
@@ -233,10 +227,9 @@ class ArtistServiceTest {
 
     @Test
     void whenRetrieveArtistDiscographyValidateNPE_ThenThrowException() throws IOException {
-        //Given
+
         DiscogsApiArtistResponseDto discogsApiArtistResponseDto = new DiscogsApiArtistResponseDto(TEST_ARTIST_ID, TEST_ARTIST_NAME);
 
-        //When
         doReturn(discogsApiArtistResponseDto)
                 .when(discogsApiClientMock).getArtistById(any());
         doReturn(Optional.empty())
@@ -248,10 +241,8 @@ class ArtistServiceTest {
         doThrow(new NullPointerException())
                 .when(discogsApiClientMock).getReleasesByArtistId(any());
 
-        //Do
         assertThrows(UnexpectedServiceException.class, () -> artistService.retrieveArtist(TEST_ARTIST_ID));
 
-        //Assert and Verify
         verify(discogsApiClientMock).getArtistById(TEST_ARTIST_ID);
         verify(artistRepositoryMock).findByApiId(TEST_ARTIST_ID);
         verify(discogsApiClientMock).getReleasesByArtistId(TEST_ARTIST_ID);
@@ -260,19 +251,16 @@ class ArtistServiceTest {
 
     @Test
     void whenRetrieveArtistValidateOtherError_ThenThrowException() throws IOException {
-        //Given
+
         DiscogsApiArtistResponseDto discogsApiArtistResponseDto = new DiscogsApiArtistResponseDto(TEST_ARTIST_ID, TEST_ARTIST_NAME);
 
-        //When
         doReturn(discogsApiArtistResponseDto)
                 .when(discogsApiClientMock).getArtistById(any());
         doThrow(new RuntimeException("DB error"))
                 .when(artistRepositoryMock).findByApiId(any());
 
-        //Do
         assertThrows(UnexpectedServiceException.class, () -> artistService.retrieveArtist(TEST_ARTIST_ID));
 
-        //Assert and Verify
         verify(discogsApiClientMock).getArtistById(TEST_ARTIST_ID);
         verifyNoMoreInteractions(artistRepositoryMock, discogsApiClientMock);
     }
@@ -281,14 +269,11 @@ class ArtistServiceTest {
     @Test
     void whenRetrieveArtistValidateNotFound_ThenThrowException() throws IOException {
 
-        //When
         doThrow(new DiscogsApiClientException("Not found", HttpStatus.NOT_FOUND.value()))
                 .when(discogsApiClientMock).getArtistById(any());
 
-        //Do
         assertThrows(NotFoundException.class, () -> artistService.retrieveArtist(TEST_ARTIST_ID));
 
-        //Assert and Verify
         verify(discogsApiClientMock).getArtistById(TEST_ARTIST_ID);
         verifyNoMoreInteractions(discogsApiClientMock);
     }
@@ -296,14 +281,11 @@ class ArtistServiceTest {
     @Test
     void whenRetrieveArtistValidateApiFailed_ThenThrowException() throws IOException {
 
-        //When
         doThrow(new DiscogsApiClientException("Timeout", HttpStatus.GATEWAY_TIMEOUT.value()))
                 .when(discogsApiClientMock).getArtistById(any());
 
-        //Do
         assertThrows(UnexpectedServiceException.class, () -> artistService.retrieveArtist(TEST_ARTIST_ID));
 
-        //Assert and Verify
         verify(discogsApiClientMock).getArtistById(TEST_ARTIST_ID);
         verifyNoMoreInteractions(discogsApiClientMock);
     }
@@ -311,14 +293,11 @@ class ArtistServiceTest {
     @Test
     void whenRetrieveArtistValidateUnexpectedError_ThenThrowException() throws IOException {
 
-        //When
         doThrow(new RuntimeException("Unexpected error"))
                 .when(discogsApiClientMock).getArtistById(any());
 
-        //Do
         assertThrows(UnexpectedServiceException.class, () -> artistService.retrieveArtist(TEST_ARTIST_ID));
 
-        //Assert and Verify
         verify(discogsApiClientMock).getArtistById(TEST_ARTIST_ID);
         verifyNoMoreInteractions(discogsApiClientMock);
     }
@@ -326,7 +305,7 @@ class ArtistServiceTest {
     @SuppressWarnings({"unchecked", "unused"})
     @Test
     void whenSearchAlbumsAllParamsThenValidateNotNull_ThenOk() {
-        //Given
+
         int testPage = 1;
         int testPageSize = 20;
 
@@ -342,11 +321,9 @@ class ArtistServiceTest {
 
         doReturn(albumPage).when(albumRepositoryMock).findAll(any(Specification.class), any(Pageable.class));
 
-        //Do
         Page<AlbumResponseDto> albums = artistService.searchAlbums(
                 TEST_ARTIST_ID, "Album", "Thriller", 2024, testPage, testPageSize);
 
-        //Assert and Verify
         verify(albumRepositoryMock).findAll(albumSpecificationsCaptor.capture(),
                 pageableArgCaptor.capture());
         assertEquals(0, pageableArgCaptor.getValue().getPageNumber());
@@ -356,7 +333,7 @@ class ArtistServiceTest {
     @SuppressWarnings({"unchecked", "unused"})
     @Test
     void whenSearchAlbumsNoOptionalParamsThenValidateNotNull_ThenOk() {
-        //Given
+
         int testPage = 1;
         int testPageSize = 20;
 
@@ -372,14 +349,62 @@ class ArtistServiceTest {
 
         doReturn(albumPage).when(albumRepositoryMock).findAll(any(Specification.class), any(Pageable.class));
 
-        //Do
         Page<AlbumResponseDto> albums = artistService.searchAlbums(
                 TEST_ARTIST_ID, null, null, null, testPage, testPageSize);
 
-        //Assert and Verify
         verify(albumRepositoryMock).findAll(albumSpecificationsCaptor.capture(),
                 pageableArgCaptor.capture());
         assertEquals(0, pageableArgCaptor.getValue().getPageNumber());
         verifyNoMoreInteractions(artistRepositoryMock, albumRepositoryMock);
+    }
+
+    @Test
+    void whenCompareArtistsValidateNotFound_thenThrowException() {
+
+        List<Long> artistIds = List.of(999L, 1000L);
+
+        doReturn(Collections.emptyList()).when(artistRepositoryMock).findAllByApiIdIn(any());
+
+        assertThrows(NotFoundException.class, () -> artistService.compareArtists(artistIds));
+
+        verify(artistRepositoryMock).findAllByApiIdIn(artistIds);
+        verifyNoMoreInteractions(artistRepositoryMock);
+    }
+
+    @Test
+    void whenCompareArtistsValidateUnexpectedError_thenThrowException() {
+
+        List<Long> artistIds = List.of(101L, 102L);
+
+        doThrow(new RuntimeException("DB is down")).when(artistRepositoryMock).findAllByApiIdIn(any());
+
+        assertThrows(UnexpectedServiceException.class, () -> artistService.compareArtists(artistIds));
+
+        verify(artistRepositoryMock, times(1)).findAllByApiIdIn(artistIds);
+        verifyNoMoreInteractions(artistRepositoryMock);
+    }
+
+    @Test
+    void whenCompareArtistsValidateSuccess_ThenOk() {
+
+        List<Long> artistIds = List.of(101L, 102L);
+
+        Artist artist1 = new Artist(101L, "Artist 101");
+        Artist artist2 = new Artist(102L, "Artist 102");
+
+        doReturn(List.of(artist1, artist2)).when(artistRepositoryMock).findAllByApiIdIn(any());
+
+        var result = artistService.compareArtists(artistIds);
+
+        assertNotNull(result);
+
+        assertEquals(2, result.getArtists().size());
+        assertEquals(artist1.getApiId(), result.getArtists().get(0).getApiId());
+        assertEquals(artist1.getName(), result.getArtists().get(0).getName());
+        assertEquals(artist2.getApiId(), result.getArtists().get(1).getApiId());
+        assertEquals(artist2.getName(), result.getArtists().get(1).getName());
+
+        verify(artistRepositoryMock).findAllByApiIdIn(artistIds);
+        verifyNoMoreInteractions(artistRepositoryMock);
     }
 }
