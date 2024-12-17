@@ -1,0 +1,176 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > AlbumSpecifications</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.arael82.challenge.artists.data.specification</a>
+</div>
+
+<h1>Coverage Summary for Class: AlbumSpecifications (com.arael82.challenge.artists.data.specification)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AlbumSpecifications</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    45.5%
+  </span>
+  <span class="absValue">
+    (5/11)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    31.2%
+  </span>
+  <span class="absValue">
+    (5/16)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.arael82.challenge.artists.data.specification;
+&nbsp;
+&nbsp;import com.arael82.challenge.artists.data.model.Album;
+&nbsp;import org.apache.commons.lang3.StringUtils;
+&nbsp;import org.springframework.data.jpa.domain.Specification;
+&nbsp;
+<b class="nc">&nbsp;public class AlbumSpecifications {</b>
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Filter by &quot;active&quot; status on the Album entity.
+&nbsp;     */
+&nbsp;    public static Specification&lt;Album&gt; isActive(Boolean active) {
+<b class="fc">&nbsp;        return (root, query, cb) -&gt; {</b>
+<b class="nc">&nbsp;            if (active == null) return cb.conjunction(); </b>
+<b class="nc">&nbsp;            return cb.equal(root.get(&quot;active&quot;), active);</b>
+&nbsp;        };
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Filter by the album&#39;s genre (exact match).
+&nbsp;     */
+&nbsp;    public static Specification&lt;Album&gt; hasGenre(String genre) {
+<b class="fc">&nbsp;        return (root, query, cb) -&gt; {</b>
+<b class="nc">&nbsp;            if (StringUtils.isBlank(genre)) return cb.conjunction();</b>
+<b class="nc">&nbsp;            return cb.equal(cb.lower(root.get(&quot;genre&quot;)), genre.toLowerCase());</b>
+&nbsp;        };
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Filter by the album&#39;s title (case-insensitive partial match).
+&nbsp;     */
+&nbsp;    public static Specification&lt;Album&gt; titleContains(String title) {
+<b class="fc">&nbsp;        return (root, query, cb) -&gt; {</b>
+<b class="nc">&nbsp;            if (StringUtils.isBlank(title)) return cb.conjunction();</b>
+<b class="nc">&nbsp;            return cb.like(cb.lower(root.get(&quot;title&quot;)), &quot;%&quot; + title.toLowerCase() + &quot;%&quot;);</b>
+&nbsp;        };
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Filter albums by release year (exact match).
+&nbsp;     */
+&nbsp;    public static Specification&lt;Album&gt; hasYear(Integer year) {
+<b class="fc">&nbsp;        return (root, query, cb) -&gt; {</b>
+<b class="nc">&nbsp;            if (year == null) return cb.conjunction();</b>
+<b class="nc">&nbsp;            return cb.equal(root.get(&quot;releaseYear&quot;), year);</b>
+&nbsp;        };
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Filter by the album&#39;s associated Artist ID (join).
+&nbsp;     */
+&nbsp;    public static Specification&lt;Album&gt; hasArtistApiId(Long artistApiId) {
+<b class="fc">&nbsp;        return (root, query, cb) -&gt; {</b>
+<b class="nc">&nbsp;            if (artistApiId == null) return cb.conjunction();</b>
+&nbsp;            // We join the &#39;artist&#39; relationship to filter by Artist.apiId
+<b class="nc">&nbsp;            return cb.equal(root.get(&quot;artist&quot;).get(&quot;apiId&quot;), artistApiId);</b>
+&nbsp;        };
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-12-16 22:48</div>
+</div>
+</body>
+</html>
