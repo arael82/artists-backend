@@ -1,8 +1,8 @@
 package com.arael82.challenge.artists.controller;
 
-import com.arael82.challenge.artists.data.model.Album;
-import com.arael82.challenge.artists.data.model.Artist;
-import com.arael82.challenge.artists.domain.MultiArtistComparisonDTO;
+import com.arael82.challenge.artists.domain.AlbumResponseDto;
+import com.arael82.challenge.artists.domain.ArtistResponseDto;
+import com.arael82.challenge.artists.domain.MultiArtistComparison;
 import com.arael82.challenge.artists.service.ArtistService;
 import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +29,7 @@ public class ArtistController {
      * @return Artist information.
      */
     @GetMapping("/{artistId}")
-    public ResponseEntity<Artist> getArtist(
+    public ResponseEntity<ArtistResponseDto> getArtist(
             @PathVariable Long artistId) {
         return ResponseEntity.ok(artistService.retrieveArtist(artistId));
     }
@@ -44,13 +44,14 @@ public class ArtistController {
      * @return Page of albums.
      */
     @GetMapping("/{artistId}/albums")
-    public ResponseEntity<Page<Album>> getAlbumsByArtistId(
+    public ResponseEntity<Page<AlbumResponseDto>> getAlbumsByArtistId(
             @PathVariable Long artistId,
             @RequestParam(required = false) String genre,
             @RequestParam(required = false) String title,
+            @RequestParam(required = false) Integer year,
             @RequestParam(defaultValue = "1") @Nonnull Integer page,
             @RequestParam(defaultValue = "20") @Nonnull Integer size) {
-        return ResponseEntity.ok(artistService.searchAlbums(artistId,genre, title, null, page, size));
+        return ResponseEntity.ok(artistService.searchAlbums(artistId,genre, title, year, page, size));
     }
 
     /**
@@ -59,7 +60,7 @@ public class ArtistController {
      * @return Comparison result.
      */
     @GetMapping("/compare")
-    public ResponseEntity<MultiArtistComparisonDTO> compareArtists(
+    public ResponseEntity<MultiArtistComparison> compareArtists(
             @RequestParam List<Long> artistIds) {
         return ResponseEntity.ok(artistService.compareArtists(artistIds));
     }

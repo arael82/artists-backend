@@ -39,9 +39,4 @@ public class Artist extends AbstractEntity {
     @OneToMany(mappedBy = "artist", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Album> albums = new ArrayList<>();
 
-    public List<Album> getAlbums() {
-            albums.sort((a1, a2) -> a2.getYear().compareTo(a1.getYear()));
-        return albums;
-    }
-
 }

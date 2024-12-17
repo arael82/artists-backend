@@ -8,6 +8,8 @@ import com.arael82.challenge.artists.data.model.Album;
 import com.arael82.challenge.artists.data.model.Artist;
 import com.arael82.challenge.artists.data.repository.AlbumRepository;
 import com.arael82.challenge.artists.data.repository.ArtistRepository;
+import com.arael82.challenge.artists.domain.AlbumResponseDto;
+import com.arael82.challenge.artists.domain.ArtistResponseDto;
 import com.arael82.challenge.artists.service.exception.NotFoundException;
 import com.arael82.challenge.artists.service.exception.UnexpectedServiceException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -146,7 +148,7 @@ class ArtistServiceTest {
         doReturn(artistEntity, updatedArtist)
                 .when(artistRepositoryMock).save(any());
         //Do
-        Artist retrievedArtist = artistService.retrieveArtist(TEST_ARTIST_ID);
+        ArtistResponseDto retrievedArtist = artistService.retrieveArtist(TEST_ARTIST_ID);
 
         //Assert and Verify
         assertEquals(TEST_ARTIST_ID, retrievedArtist.getApiId());
@@ -188,7 +190,7 @@ class ArtistServiceTest {
                 .when(discogsApiClientMock).getReleasesByArtistId(any());
 
         //Do
-        Artist retrievedArtist = artistService.retrieveArtist(TEST_ARTIST_ID);
+        ArtistResponseDto retrievedArtist = artistService.retrieveArtist(TEST_ARTIST_ID);
 
         //Assert and Verify
         assertEquals(TEST_ARTIST_ID, retrievedArtist.getApiId());
@@ -341,7 +343,7 @@ class ArtistServiceTest {
         doReturn(albumPage).when(albumRepositoryMock).findAll(any(Specification.class), any(Pageable.class));
 
         //Do
-        Page<Album> albums = artistService.searchAlbums(
+        Page<AlbumResponseDto> albums = artistService.searchAlbums(
                 TEST_ARTIST_ID, "Album", "Thriller", 2024, testPage, testPageSize);
 
         //Assert and Verify
@@ -371,7 +373,7 @@ class ArtistServiceTest {
         doReturn(albumPage).when(albumRepositoryMock).findAll(any(Specification.class), any(Pageable.class));
 
         //Do
-        Page<Album> albums = artistService.searchAlbums(
+        Page<AlbumResponseDto> albums = artistService.searchAlbums(
                 TEST_ARTIST_ID, null, null, null, testPage, testPageSize);
 
         //Assert and Verify

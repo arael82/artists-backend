@@ -22,7 +22,7 @@ public class AlbumSpecifications {
     public static Specification<Album> hasGenre(String genre) {
         return (root, query, cb) -> {
             if (StringUtils.isBlank(genre)) return cb.conjunction();
-            return cb.equal(root.get("genre"), genre);
+            return cb.equal(cb.lower(root.get("genre")), genre.toLowerCase());
         };
     }
 
@@ -42,7 +42,7 @@ public class AlbumSpecifications {
     public static Specification<Album> hasYear(Integer year) {
         return (root, query, cb) -> {
             if (year == null) return cb.conjunction();
-            return cb.equal(root.get("year"), year);
+            return cb.equal(root.get("releaseYear"), year);
         };
     }
 

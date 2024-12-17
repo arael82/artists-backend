@@ -8,15 +8,15 @@ import java.util.List;
 
 @Getter
 @Log4j2
-public class MultiArtistComparisonDTO {
+public class MultiArtistComparison {
 
-    private final List<ArtistComparisonResultDTO> artists;
+    private final List<ArtistComparisonResult> artists;
 
     private Long topArtistIdByReleases;
 
     private Long topArtistIdByActiveYears;
 
-    public MultiArtistComparisonDTO(List<ArtistComparisonResultDTO> artists) {
+    public MultiArtistComparison(List<ArtistComparisonResult> artists) {
         this.artists = artists;
         calculateTopReleaseArtist();
         calculateTopActiveYearsArtist();
@@ -28,8 +28,8 @@ public class MultiArtistComparisonDTO {
     private void calculateTopReleaseArtist() {
         log.debug("Calculating top release artist");
         this.topArtistIdByReleases = artists.stream()
-                .max(Comparator.comparingLong(ArtistComparisonResultDTO::getNumberOfReleases))
-                .map(ArtistComparisonResultDTO::getApiId)
+                .max(Comparator.comparingLong(ArtistComparisonResult::getNumberOfReleases))
+                .map(ArtistComparisonResult::getApiId)
                 .orElse(null);
     }
 
@@ -39,8 +39,8 @@ public class MultiArtistComparisonDTO {
     private void calculateTopActiveYearsArtist() {
         log.debug("Calculating top active years artist");
         this.topArtistIdByActiveYears = artists.stream()
-                .max(Comparator.comparingInt(ArtistComparisonResultDTO::getActiveYears))
-                .map(ArtistComparisonResultDTO::getApiId)
+                .max(Comparator.comparingInt(ArtistComparisonResult::getActiveYears))
+                .map(ArtistComparisonResult::getApiId)
                 .orElse(null);
     }
 }

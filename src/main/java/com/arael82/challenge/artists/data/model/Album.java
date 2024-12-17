@@ -24,7 +24,7 @@ public class Album extends AbstractEntity {
         this.apiId = apiId;
         this.genre = genre;
         this.title = title;
-        this.year = year;
+        this.releaseYear = year;
     }
 
     @Id
@@ -39,13 +39,13 @@ public class Album extends AbstractEntity {
     @ToString.Exclude
     private Artist artist;
 
-    @Column(name = "genre_id", nullable = false)
+    @Column(name = "genre_id")
     private String genre;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String title;
 
-    @Column(nullable = false)
-    private Integer year;
+    @Column
+    private Integer releaseYear;
 
 }

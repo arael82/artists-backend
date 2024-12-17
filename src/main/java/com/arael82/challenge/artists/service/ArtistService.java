@@ -10,8 +10,12 @@ import com.arael82.challenge.artists.data.model.Artist;
 import com.arael82.challenge.artists.data.repository.AlbumRepository;
 import com.arael82.challenge.artists.data.repository.ArtistRepository;
 import com.arael82.challenge.artists.data.specification.AlbumSpecifications;
-import com.arael82.challenge.artists.domain.ArtistComparisonResultDTO;
-import com.arael82.challenge.artists.domain.MultiArtistComparisonDTO;
+import com.arael82.challenge.artists.domain.AlbumResponseDto;
+import com.arael82.challenge.artists.domain.ArtistComparisonResult;
+import com.arael82.challenge.artists.domain.ArtistResponseDto;
+import com.arael82.challenge.artists.domain.MultiArtistComparison;
+import com.arael82.challenge.artists.domain.mapper.AlbumMapper;
+import com.arael82.challenge.artists.domain.mapper.ArtistMapper;
 import com.arael82.challenge.artists.service.exception.NotFoundException;
 import com.arael82.challenge.artists.service.exception.UnexpectedServiceException;
 import jakarta.transaction.Transactional;
@@ -45,11 +49,12 @@ public class ArtistService {
 
     /**
      * Retrieve artist from Discogs API.
+     *
      * @param artistId Artist ID.
      * @return The artist information, if there is any.
      */
     @Transactional
-    public Artist retrieveArtist(Long artistId) {
+    public ArtistResponseDto retrieveArtist(Long artistId) {
         try {
             var artistResponseFromApi = discogsApiClient.getArtistById(artistId);
             var artistEntity = getArtistFromDb(artistResponseFromApi);
@@ -60,16 +65,19 @@ public class ArtistService {
             log.debug("Persisting updated artist with discography ({}: {})", artistEntity.getId(), artistEntity.getName());
             var updatedArtist = artistRepository.save(artistEntity);
             log.info("Successfully persisted artist with discography ({}: {})", updatedArtist.getId(), updatedArtist.getName());
-            return updatedArtist;
+            return ArtistMapper.toResponseDto(updatedArtist);
         } catch (DiscogsApiClientException dacEx) {
             if(dacEx.code == HttpStatus.NOT_FOUND) {
+                log.info("Artist not found in Discogs API ({})", artistId);
                 throw new NotFoundException(String.format("Artist not found (%s).", artistId));
             } else {
                 throw new UnexpectedServiceException(dacEx);
             }
         } catch (UnexpectedServiceException usEx) {
+            log.error("Unexpected service error while retrieving artist from Discogs API.", usEx);
             throw usEx;
         } catch (Exception ex) {
+            log.error("Unexpected error while retrieving artist from Discogs API.", ex);
             throw new UnexpectedServiceException(ex);
         }
     }
@@ -84,7 +92,7 @@ public class ArtistService {
      * @param size Page size.
      * @return A page of albums that match the search criteria.
      */
-    public Page<Album> searchAlbums(
+    public Page<AlbumResponseDto> searchAlbums(
             long artistApiId,
             String genre,
             String title,
@@ -114,13 +122,16 @@ public class ArtistService {
         Pageable pageable = PageRequest.of(
                 page - 1,
                 size,
-                Sort.by(Sort.Order.asc("year"), Sort.Order.asc("title"))
+                Sort.by(Sort.Order.asc("releaseYear"), Sort.Order.asc("title"))
         );
 
         log.info("Searching albums for artist ({}) with filters: genre={}, title={}, year={}",
                 artistApiId, genre, title, year);
 
-        return albumRepository.findAll(spec, pageable);
+        var albums = albumRepository.findAll(spec, pageable);
+        // Here is the main difference: map the Album objects to Dto objects
+
+        return albums.map(AlbumMapper::toResponseDto);
 
     }
 
@@ -129,10 +140,10 @@ public class ArtistService {
      * @param artistIds List of artist IDs.
      * @return Comparison results for the artists.
      */
-    public MultiArtistComparisonDTO compareArtists(List<Long> artistIds) {
+    public MultiArtistComparison compareArtists(List<Long> artistIds) {
         try {
             log.info("Performing search of artists for comparison: {}", artistIds);
-            var artists = artistRepository.findAllById(artistIds);
+            var artists = artistRepository.findAllByApiIdIn(artistIds);
 
             if (artists.isEmpty()) {
                 var message = String.format("No artists found for comparison: %s", artistIds);
@@ -142,8 +153,8 @@ public class ArtistService {
 
             log.info("Comparing artists: {}", artists.stream().map(Artist::getId).toList());
 
-            return new MultiArtistComparisonDTO(artists.stream()
-                    .map(ArtistComparisonResultDTO::new)
+            return new MultiArtistComparison(artists.stream()
+                    .map(ArtistComparisonResult::new)
                     .toList());
         } catch (NotFoundException nfEx) {
             throw nfEx;
@@ -211,7 +222,7 @@ public class ArtistService {
         log.debug("Processing discography for artist ({}: {})", artist.getId(), artist.getName());
 
         Map<Long, DiscogsApiReleaseResponseDto> entriesFromApi = discography.releases().stream()
-                .collect(Collectors.toMap(DiscogsApiReleaseResponseDto::id, Function.identity()));
+                .collect(Collectors.toMap(DiscogsApiReleaseResponseDto::id, Function.identity(), (a, b) -> a));
 
         Map<Long, Album> savedEntries = artist.getAlbums().stream()
                 .collect(Collectors.toMap(Album::getApiId, Function.identity()));
@@ -222,7 +233,7 @@ public class ArtistService {
             album.setActive(entriesFromApi.containsKey(album.getApiId()));
             album.setTitle(entriesFromApi.get(album.getApiId()).title());
             album.setGenre(entriesFromApi.get(album.getApiId()).role());
-            album.setYear(entriesFromApi.get(album.getApiId()).year());
+            album.setReleaseYear(entriesFromApi.get(album.getApiId()).year());
 
         }
 

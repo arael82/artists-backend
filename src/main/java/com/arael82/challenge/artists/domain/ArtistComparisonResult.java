@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 
 @Getter
 @Log4j2
-public class ArtistComparisonResultDTO {
+public class ArtistComparisonResult {
 
     private final Long apiId;
     private final String name;
@@ -18,7 +18,7 @@ public class ArtistComparisonResultDTO {
     private int activeYears;
     private Map<String, Long> genreFrequency;
 
-    public ArtistComparisonResultDTO(Artist source) {
+    public ArtistComparisonResult(Artist source) {
         this.apiId = source.getApiId();
         this.name = source.getName();
         calculateStats(source);
@@ -36,9 +36,13 @@ public class ArtistComparisonResultDTO {
                 .filter(a -> Boolean.TRUE.equals(a.getActive())).count();
 
         log.debug("Calculating active years for artist {}", source.getName());
+
         this.activeYears = source.getAlbums().stream()
-                .mapToInt(Album::getYear).max().orElse(0) - source.getAlbums().stream()
-                .mapToInt(Album::getYear).min().orElse(0);
+                .filter(a -> Boolean.TRUE.equals(a.getActive() && a.getReleaseYear() != null))
+                .mapToInt(Album::getReleaseYear).max().orElse(0)
+                - source.getAlbums().stream()
+                .filter(a -> Boolean.TRUE.equals(a.getActive() && a.getReleaseYear() != null))
+                .mapToInt(Album::getReleaseYear).min().orElse(0);
 
         log.debug("Calculating genre frequency for artist {}", source.getName());
 
