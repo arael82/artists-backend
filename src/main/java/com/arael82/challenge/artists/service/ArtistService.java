@@ -10,6 +10,8 @@ import com.arael82.challenge.artists.data.model.Artist;
 import com.arael82.challenge.artists.data.repository.AlbumRepository;
 import com.arael82.challenge.artists.data.repository.ArtistRepository;
 import com.arael82.challenge.artists.data.specification.AlbumSpecifications;
+import com.arael82.challenge.artists.domain.ArtistComparisonResultDTO;
+import com.arael82.challenge.artists.domain.MultiArtistComparisonDTO;
 import com.arael82.challenge.artists.service.exception.NotFoundException;
 import com.arael82.challenge.artists.service.exception.UnexpectedServiceException;
 import jakarta.transaction.Transactional;
@@ -24,6 +26,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
@@ -67,6 +70,85 @@ public class ArtistService {
         } catch (UnexpectedServiceException usEx) {
             throw usEx;
         } catch (Exception ex) {
+            throw new UnexpectedServiceException(ex);
+        }
+    }
+
+    /**
+     * Search for albums by artist, with optional filters.
+     * @param artistApiId Artist ID.
+     * @param genre Genre filter.
+     * @param title Title filter.
+     * @param year Year filter.
+     * @param page Page number.
+     * @param size Page size.
+     * @return A page of albums that match the search criteria.
+     */
+    public Page<Album> searchAlbums(
+            long artistApiId,
+            String genre,
+            String title,
+            Integer year,
+            int page,
+            int size) {
+
+        log.debug("Preparing album search for artist ({}) with filters: genre={}, title={}, year={}",
+                artistApiId, genre, title, year);
+
+        Specification<Album> spec = Specification
+                .where(AlbumSpecifications.hasArtistApiId(artistApiId))
+                .and(AlbumSpecifications.isActive(true));
+
+        if (StringUtils.isNotBlank(genre)) {
+            spec = spec.and(AlbumSpecifications.hasGenre(genre));
+        }
+
+        if (StringUtils.isNotBlank(title)) {
+            spec = spec.and(AlbumSpecifications.titleContains(title));
+        }
+
+        if (year != null) {
+            spec = spec.and(AlbumSpecifications.hasYear(year));
+        }
+
+        Pageable pageable = PageRequest.of(
+                page - 1,
+                size,
+                Sort.by(Sort.Order.asc("year"), Sort.Order.asc("title"))
+        );
+
+        log.info("Searching albums for artist ({}) with filters: genre={}, title={}, year={}",
+                artistApiId, genre, title, year);
+
+        return albumRepository.findAll(spec, pageable);
+
+    }
+
+    /**
+     * Compare multiple artists by ID.
+     * @param artistIds List of artist IDs.
+     * @return Comparison results for the artists.
+     */
+    public MultiArtistComparisonDTO compareArtists(List<Long> artistIds) {
+        try {
+            log.info("Performing search of artists for comparison: {}", artistIds);
+            var artists = artistRepository.findAllById(artistIds);
+
+            if (artists.isEmpty()) {
+                var message = String.format("No artists found for comparison: %s", artistIds);
+                log.info(message);
+                throw new NotFoundException(message);
+            }
+
+            log.info("Comparing artists: {}", artists.stream().map(Artist::getId).toList());
+
+            return new MultiArtistComparisonDTO(artists.stream()
+                    .map(ArtistComparisonResultDTO::new)
+                    .toList());
+        } catch (NotFoundException nfEx) {
+            throw nfEx;
+        } catch (Exception ex) {
+            log.error("Unexpected error while comparing artists.", ex);
             throw new UnexpectedServiceException(ex);
         }
     }
@@ -151,55 +233,4 @@ public class ArtistService {
                         .toList());
 
     }
-
-    /**
-     * Search for albums by artist, with optional filters.
-     * @param artistApiId Artist ID.
-     * @param genre Genre filter.
-     * @param title Title filter.
-     * @param year Year filter.
-     * @param page Page number.
-     * @param size Page size.
-     * @return A page of albums that match the search criteria.
-     */
-    public Page<Album> searchAlbums(
-            long artistApiId,
-            String genre,
-            String title,
-            Integer year,
-            int page,
-            int size) {
-
-        log.debug("Preparing album search for artist ({}) with filters: genre={}, title={}, year={}",
-                artistApiId, genre, title, year);
-
-        Specification<Album> spec = Specification
-                .where(AlbumSpecifications.hasArtistApiId(artistApiId))
-                .and(AlbumSpecifications.isActive(true));
-
-        if (StringUtils.isNotBlank(genre)) {
-            spec = spec.and(AlbumSpecifications.hasGenre(genre));
-        }
-
-        if (StringUtils.isNotBlank(title)) {
-            spec = spec.and(AlbumSpecifications.titleContains(title));
-        }
-
-        if (year != null) {
-            spec = spec.and(AlbumSpecifications.hasYear(year));
-        }
-
-        Pageable pageable = PageRequest.of(
-                page - 1,
-                size,
-                Sort.by(Sort.Order.asc("year"), Sort.Order.asc("title"))
-        );
-
-        log.info("Searching albums for artist ({}) with filters: genre={}, title={}, year={}",
-                artistApiId, genre, title, year);
-
-        return albumRepository.findAll(spec, pageable);
-
-    }
-
 }
